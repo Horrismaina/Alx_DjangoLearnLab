@@ -8,4 +8,4 @@ except Book.DoesNotExist:
     print("The book was successfully deleted.")
 
 
-Number of books in database: 0
+<!-- Number of books in database: 0 -->
