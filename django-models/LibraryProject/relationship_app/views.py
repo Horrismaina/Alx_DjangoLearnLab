@@ -1,10 +1,9 @@
-from django.shortcuts import render, redirect
-from django.views.generic.detail import DetailView
-from django.views.generic import ListView
+from django.shortcuts import render
+from django.views.generic import DetailView, ListView
 from .models import Book, Library
-from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import redirect
 
 # Function-based view to list all books
 @login_required
@@ -19,12 +18,12 @@ class LibraryDetailView(DetailView):
     context_object_name = 'library'
 
 # Class-based view to list all libraries
-class LibraryListView(LoginRequiredMixin, ListView):
+class LibraryListView(ListView):
     model = Library
     template_name = 'list_libraries.html'
     context_object_name = 'libraries'
 
-# Registration view for users
+# User registration view
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
