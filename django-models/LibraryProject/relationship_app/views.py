@@ -1,29 +1,30 @@
 from django.shortcuts import render
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView
+from django.http import HttpResponse
 from .models import Book, Library
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-from django.shortcuts import redirect
+from django.shortcuts import render, redirect
 
-# Function-based view to list all books
-@login_required
+# Function-based view to list all books with plain text response
 def list_books(request):
-    books = Book.objects.all()  # Query to get all books
-    return render(request, 'list_books.html', {'books': books})
+    books = Book.objects.all()
+    # Create a simple text response
+    response_text = "Books Available:\n"
+    for book in books:
+        response_text += f"- {book.title} by {book.author.name}\n"
+    return HttpResponse(response_text, content_type="text/plain")
+
+# HTML version of the list_books view
+def list_books_html(request):
+    books = Book.objects.all()
+    return render(request, 'relationship_app/list_books.html', {'books': books})
 
 # Class-based view to display details of a specific library
 class LibraryDetailView(DetailView):
     model = Library
-    template_name = 'library_detail.html'
+    template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
 
-# Class-based view to list all libraries
-class LibraryListView(ListView):
-    model = Library
-    template_name = 'list_libraries.html'
-    context_object_name = 'libraries'
-
-# User registration view
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
