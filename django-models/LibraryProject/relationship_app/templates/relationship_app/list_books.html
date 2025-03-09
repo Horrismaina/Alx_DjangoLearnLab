@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>List of Books</title>
+    <title>Book List</title>
 </head>
 <body>
-    <h1>Books Available:</h1>
+    <h1>Books Available</h1>
     <ul>
         {% for book in books %}
-        <li>
-            {{ book.title }} by {{ book.author.name }}
-            {% if book.library_set.all %}
-                - Available at: 
-                {% for library in book.library_set.all %}
-                    <a href="{% url 'library_detail' library.id %}">{{ library.name }}</a>{% if not forloop.last %}, {% endif %}
+            <li>
+                <strong>{{ book.title }}</strong> by 
+                {% for author in book.authors.all %}
+                    {{ author.name }}{% if not forloop.last %}, {% endif %}
                 {% endfor %}
-            {% endif %}
-        </li>
+            </li>
+        {% empty %}
+            <li>No books available.</li>
         {% endfor %}
     </ul>
 </body>

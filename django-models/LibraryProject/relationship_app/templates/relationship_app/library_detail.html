@@ -1,16 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Library Detail</title>
+    <title>{{ library.name }} - Details</title>
 </head>
 <body>
-    <h1>Library: {{ library.name }}</h1>
-    <h2>Books in Library:</h2>
+    <h1>{{ library.name }}</h1>
+    <p>Address: {{ library.address }}</p>
+    
+    <h2>Books Available in this Library</h2>
     <ul>
-        {% for book in library.books.all %}
-        <li>{{ book.title }} by {{ book.author.name }} (Published {{ book.publication_year }})</li>
+        {% for book in books %}
+            <li>
+                <strong>{{ book.title }}</strong> by 
+                {% for author in book.authors.all %}
+                    {{ author.name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </li>
+        {% empty %}
+            <li>No books available in this library.</li>
         {% endfor %}
     </ul>
+    
+    <p><a href="{% url 'list_books' %}">Back to All Books</a></p>
 </body>
 </html>

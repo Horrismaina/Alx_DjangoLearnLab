@@ -1,9 +1,8 @@
-from django.shortcuts import render
-from django.views.generic import DetailView
-from django.http import HttpResponse
-from .models import Book, Library
-from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
+from django.views.generic import DetailView, ListView
+from django.http import HttpResponse
+from .models import Book, Library, Author
+from django.contrib.auth.forms import UserCreationForm
 
 # Function-based view to list all books with plain text response
 def list_books(request):
@@ -11,7 +10,8 @@ def list_books(request):
     # Create a simple text response
     response_text = "Books Available:\n"
     for book in books:
-        response_text += f"- {book.title} by {book.author.name}\n"
+        authors = ", ".join([author.name for author in book.authors.all()])
+        response_text += f"- {book.title} by {authors}\n"
     return HttpResponse(response_text, content_type="text/plain")
 
 # HTML version of the list_books view
@@ -24,6 +24,12 @@ class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Add books in this library to the context
+        context['books'] = self.object.books.all()
+        return context
 
 def register(request):
     if request.method == 'POST':
@@ -33,4 +39,5 @@ def register(request):
             return redirect('login')
     else:
         form = UserCreationForm()
+    return render(request, 'register.html', {'form': form})
     return render(request, 'register.html', {'form': form})
