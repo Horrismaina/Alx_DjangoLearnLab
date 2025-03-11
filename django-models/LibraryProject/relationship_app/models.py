@@ -6,7 +6,7 @@ class Author(models.Model):
     def __str__(self):
         return self.name
 
-class Library(models.Model):
+class Librarian(models.Model):
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=200)
     
@@ -16,7 +16,7 @@ class Library(models.Model):
 class Book(models.Model):
     title = models.CharField(max_length=100)
     authors = models.ManyToManyField(Author, related_name='books')
-    library = models.ForeignKey(Library, on_delete=models.CASCADE, null=True, blank=True)
+    library = models.ForeignKey(Librarian, on_delete=models.CASCADE, null=True, blank=True)
     
     def __str__(self):
         return self.title
