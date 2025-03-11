@@ -2,12 +2,15 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
+from django.contrib.auth.decorators import permission_required
 from django.views.generic.detail import DetailView
 from django.views import View
-from .models import Book, Library
-from .forms import BookForm  # Ensure BookForm is defined
+from .models import Book
+from .models import Library# Ensure Library is imported here
+# from .forms import BookForm
 
-# Admin check for user
+# Ensure this is defined in forms.py
+
 def check_admin(user):
     return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'Admin'
 
@@ -17,7 +20,6 @@ def admin_view(request):
         'message': 'Welcome to the Admin Dashboard'
     })
 
-# Librarian check for user
 def check_librarian(user):
     return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'Librarian'
 
@@ -27,7 +29,6 @@ def librarian_view(request):
         'message': 'Welcome to the Librarian Dashboard'
     })
 
-# Member check for user
 def check_member(user):
     return user.is_authenticated and hasattr(user, 'userprofile') and user.userprofile.role == 'Member'
 
@@ -37,15 +38,10 @@ def member_view(request):
         'message': 'Welcome to the Member Area'
     })
 
+
 # Function-based view to list all books
 @login_required
 def list_books(request):
-    books = Book.objects.all()
-    return render(request, 'relationship_app/list_books.html', {'books': books})
-
-# HTML version of list_books for the home page
-@login_required
-def list_books_html(request):
     books = Book.objects.all()
     return render(request, 'relationship_app/list_books.html', {'books': books})
 
@@ -55,17 +51,31 @@ class LibraryDetailView(DetailView):
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
 
-# User Registration (function-based)
+# User Registration
+class RegisterView(View):
+    def get(self, request):
+        form = UserCreationForm()
+        return render(request, 'relationship_app/register.html', {'form': form})
+
+    def post(self, request):
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('list_books')
+        return render(request, 'relationship_app/register.html', {'form': form})
+
+# Function-based view for user registration
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('list_books')
+            return redirect('relationship_app:list_books')
     else:
         form = UserCreationForm()
-    return render(request, 'relationship_app/register.html', {'form': form})
+    return render(request, 'register.html', {'form': form})
 
 # User Login
 def login_view(request):
@@ -82,7 +92,7 @@ def login_view(request):
 # User Logout
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('login')  # Redirecting to login after logout
 
 # Permission-protected views for managing books
 
@@ -92,7 +102,7 @@ def add_book(request):
         form = BookForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("list_books")
+            return redirect("list_books")  # Ensure 'list_books' exists in urls.py
     else:
         form = BookForm()
     return render(request, "relationship_app/add_book.html", {"form": form})
