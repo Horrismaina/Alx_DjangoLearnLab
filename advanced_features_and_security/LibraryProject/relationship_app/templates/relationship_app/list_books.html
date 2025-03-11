@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books List</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"> <!-- Assuming you have a static CSS file -->
+</head>
+<body>
+    <h1>Books List</h1>
+
+    {% if books %}
+    <ul>
+        {% for book in books %}
+        <li>
+            <strong>{{ book.title }}</strong> by {{ book.author }} <br>
+            Published: {{ book.published_date }} <br>
+            ISBN: {{ book.isbn }} <br>
+            <a href="{% url 'edit_book' book.id %}">Edit</a> |
+            <a href="{% url 'delete_book' book.id %}">Delete</a>
+        </li>
+        <br>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No books available.</p>
+    {% endif %}
+
+    <a href="{% url 'add_book' %}">Add New Book</a> <!-- Assuming 'add_book' exists in urls.py -->
+</body>
+</html>
+
+</html>
