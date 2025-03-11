@@ -4,7 +4,7 @@
     <title>Book List</title>
 </head>
 <body>
-    <h1>Books Available</h1>
+    <h1>All Books</h1>
     <ul>
         {% for book in books %}
             <li>
@@ -12,9 +12,17 @@
                 {% for author in book.authors.all %}
                     {{ author.name }}{% if not forloop.last %}, {% endif %}
                 {% endfor %}
+                (Available at: <a href="{% url 'library_detail' book.library.id %}">{{ book.library.name }}</a>)
             </li>
         {% empty %}
             <li>No books available.</li>
+        {% endfor %}
+    </ul>
+    
+    <h2>Libraries</h2>
+    <ul>
+        {% for library in libraries %}
+            <li><a href="{% url 'library_detail' library.id %}">{{ library.name }}</a></li>
         {% endfor %}
     </ul>
 </body>

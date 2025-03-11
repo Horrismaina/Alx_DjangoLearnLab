@@ -8,7 +8,9 @@
     <h1>List of Libraries</h1>
     <ul>
         {% for library in libraries %}
-        <li>{{ library.name }}</li>
+        <li>
+            <a href="{% url 'library_detail' library.id %}">{{ library.name }}</a>
+        </li>
         {% endfor %}
     </ul>
 </body>
