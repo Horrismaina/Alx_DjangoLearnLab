@@ -39,7 +39,7 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-# Book model
+# Book model with custom permissions
 class Book(models.Model):
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=100)
@@ -47,6 +47,14 @@ class Book(models.Model):
 
     def __str__(self):
         return f"{self.title} by {self.author} ({self.publication_year})"
+
+    class Meta:
+        permissions = [
+            ("can_view", "Can view book"),
+            ("can_create", "Can create book"),
+            ("can_edit", "Can edit book"),
+            ("can_delete", "Can delete book"),
+        ]
 
 # User profile model
 class UserProfile(models.Model):
@@ -61,7 +69,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
-# Signal to automatically create a UserProfile when a new user is registered
+# Signals to automatically create a UserProfile when a new user is registered
 @receiver(post_save, sender=CustomUser)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
@@ -70,3 +78,4 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def save_user_profile(sender, instance, **kwargs):
     instance.userprofile.save()
+
