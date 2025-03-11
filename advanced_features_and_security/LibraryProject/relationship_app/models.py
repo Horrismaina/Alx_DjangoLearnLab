@@ -40,14 +40,7 @@ class CustomUser(AbstractUser):
 
 
 
-class Librarian(models.Model):
-    name = models.CharField(max_length=100)
-    location = models.CharField(max_length=200)
-    established_date = models.DateField()
-
-    def __str__(self):
-        return self.name
-
+    
 
 # UserProfile model with a role field
 class UserProfile(models.Model):
@@ -76,7 +69,7 @@ class Author(models.Model):
     def __str__(self):
         return self.name
 
-class Library(models.Model):
+class Librarian(models.Model):
     name = models.CharField(max_length=100)
     address = models.CharField(max_length=200)
 
