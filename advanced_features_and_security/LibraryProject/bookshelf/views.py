@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import permission_required
 from .models import Book
-from .forms import BookForm, ExampleForm  # Import the forms
+from .forms import BookForm
+from .forms import ExampleForm  # Import the forms
 
 # Book list view
 @permission_required('bookshelf.can_view', raise_exception=True)
