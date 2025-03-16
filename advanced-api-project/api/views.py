@@ -1,7 +1,7 @@
 from rest_framework import generics
 from .models import Book
 from .serializers import BookSerializer
-from rest_framework.permissions import  IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated  # Ensure this is exactly as required
 
 # ListView: Retrieve all books
 class BookListView(generics.ListAPIView):
@@ -32,8 +32,6 @@ class BookDeleteView(generics.DestroyAPIView):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticated]  # Only authenticated users can delete books
-
-
 
 # BookListView: Handles retrieving all books
 # Accessible by unauthenticated users for read-only access
