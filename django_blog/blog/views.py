@@ -3,6 +3,8 @@ from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q  # Import Q for complex query lookups
+from django.shortcuts import render
 from .models import Post, Comment  # Import Comment model
 
 # Post List View (No login required)
@@ -99,3 +101,19 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def get_success_url(self):
         return self.object.post.get_absolute_url()  # Redirect to the post detail page after deletion
 
+def PostSearchView(request):
+    query = request.GET.get('q')  # Get the search query from the request
+    if query:
+        results = Post.objects.filter(
+            Q(title__icontains=query) |  # Search by title
+            Q(content__icontains=query) |  # Search by content
+            Q(tags__name__icontains=query)  # Search by tags
+        ).distinct()
+    else:
+        results = Post.objects.none()  # No results if no query
+
+    context = {
+        'posts': results,
+        'query': query
+    }
+    return render(request, 'blog/post_search.html', context)
