@@ -1,36 +1,51 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.decorators import login_required
-from .forms import UserUpdateForm  # Import your custom form
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from .models import Post
 
-# User registration view
-def register(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            username = form.cleaned_data.get('username')
-            login(request, user)
-            return redirect('home')
-    else:
-        form = UserCreationForm()
-    return render(request, 'blog/register.html', {'form': form})
+# Display all posts
+class PostListView(ListView):
+    model = Post
+    template_name = 'blog/post_list.html'  # Template for listing all posts
+    context_object_name = 'posts'
+    ordering = ['-date_posted']  # Display posts in descending order by date
 
-# User profile view
-@login_required
-def profile(request):
-    return render(request, 'blog/profile.html')
+# Display a single post
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'  # Template for displaying a single post
 
-@login_required
-def profile_update(request):
-    if request.method == 'POST':
-        u_form = UserUpdateForm(request.POST, instance=request.user)
-        if u_form.is_valid():
-            u_form.save()
-            return redirect('profile')
-    else:
-        u_form = UserUpdateForm(instance=request.user)
+# Create a new post
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['title', 'content']
+    template_name = 'blog/post_form.html'
 
-    return render(request, 'blog/profile_update.html', {'u_form': u_form})
+    def form_valid(self, form):
+        form.instance.author = self.request.user  # Set the post's author to the current logged-in user
+        return super().form_valid(form)
+
+# Update an existing post
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    fields = ['title', 'content']
+    template_name = 'blog/post_form.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user  # Set the post's author to the current logged-in user
+        return super().form_valid(form)
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author  # Ensure that only the author can edit the post
+
+# Delete a post
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = '/'  # Redirect after deleting a post
+
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author  # Ensure that only the author can delete the post
+
 
