@@ -99,5 +99,3 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def get_success_url(self):
         return self.object.post.get_absolute_url()  # Redirect to the post detail page after deletion
 
-
-
