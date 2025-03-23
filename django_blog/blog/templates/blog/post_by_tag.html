@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+    {% extends 'base.html' %}
+
+{% block content %}
+    <h2>Posts tagged with "{{ tag.name }}"</h2>
+
+    {% if posts %}
+        {% for post in posts %}
+            <div>
+                <h3><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+                <p>{{ post.content|truncatewords:30 }}</p>
+                <small>By {{ post.author }} on {{ post.date_posted }}</small>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No posts found for this tag.</p>
+    {% endif %}
+{% endblock %}
+
+</body>
+</html>

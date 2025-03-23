@@ -6,6 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q  # Import Q for complex query lookups
 from django.shortcuts import render
 from .models import Post, Comment  # Import Comment model
+from django.views.generic import ListView
+from taggit.models import Tag  # Import the Tag model from django-taggit
+
 
 # Post List View (No login required)
 class PostListView(ListView):
@@ -117,3 +120,18 @@ def PostSearchView(request):
         'query': query
     }
     return render(request, 'blog/post_search.html', context)
+
+class PostByTagListView(ListView):
+    model = Post
+    template_name = 'blog/post_by_tag.html'
+    context_object_name = 'posts'
+
+    def get_queryset(self):
+        # Get the tag name from the URL
+        tag = get_object_or_404(Tag, slug=self.kwargs.get('slug'))
+        return Post.objects.filter(tags=tag)  # Filter posts by the tag
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = get_object_or_404(Tag, slug=self.kwargs.get('slug'))  # Add the tag to the context
+        return context
