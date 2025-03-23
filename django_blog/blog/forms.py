@@ -1,6 +1,7 @@
 from django import forms
 from .models import Comment
 from .models import Post
+from taggit.forms import TagWidget
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 
@@ -34,5 +35,7 @@ class CommentForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'tags']
-
+        fields = ['title', 'content', 'tags']  # Include the tags field
+        widgets = {
+            'tags': TagWidget(),  # Use TagWidget for tags input
+        }
