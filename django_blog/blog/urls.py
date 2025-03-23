@@ -1,8 +1,24 @@
 from django.urls import path
-from .views import post_detail, comment_edit, comment_delete
+from .views import (
+    PostListView,
+    PostDetailView,
+    PostCreateView,
+    PostUpdateView,
+    PostDeleteView,
+    CommentCreateView,
+    CommentUpdateView,
+    CommentDeleteView
+)
 
 urlpatterns = [
-    path('post/<int:pk>/', post_detail, name='post-detail'),
-    path('post/<int:post_id>/comment/<int:comment_id>/edit/', comment_edit, name='comment-edit'),
-    path('post/<int:post_id>/comment/<int:comment_id>/delete/', comment_delete, name='comment-delete'),
+    path('', PostListView.as_view(), name='post-list'),
+    path('post/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
+    path('post/new/', PostCreateView.as_view(), name='post-create'),
+    path('post/<int:pk>/update/', PostUpdateView.as_view(), name='post-update'),
+    path('post/<int:pk>/delete/', PostDeleteView.as_view(), name='post-delete'),
+    
+    # Comment URLs
+    path('post/<int:pk>/comments/new/', CommentCreateView.as_view(), name='comment-create'),  # Create new comment
+    path('comment/<int:pk>/update/', CommentUpdateView.as_view(), name='comment-update'),  # Update existing comment
+    path('comment/<int:pk>/delete/', CommentDeleteView.as_view(), name='comment-delete'),  # Delete existing comment
 ]
