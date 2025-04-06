@@ -2,14 +2,14 @@ from rest_framework import viewsets, permissions, generics
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404  # <-- Import get_object_or_404
+from django.shortcuts import get_object_or_404  # Importing get_object_or_404 correctly
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from accounts.models import CustomUser
-from notifications.models import Notification  # <-- Import the Notification model
-from notifications.serializers import NotificationSerializer  # <-- Import the NotificationSerializer
+from notifications.models import Notification  # Ensure you import the Notification model
+from notifications.serializers import NotificationSerializer  # Ensure you import the NotificationSerializer
 from django.contrib.contenttypes.models import ContentType
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -26,15 +26,13 @@ class PostViewSet(viewsets.ModelViewSet):
     # Like a post (Custom action)
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)  # <-- Use get_object_or_404 to fetch the Post
+        post = get_object_or_404(Post, pk=pk)  # Correctly fetch the Post object
         user = request.user
         
         # Check if the user has already liked the post
-        if Like.objects.filter(post=post, user=user).exists():
+        like, created = Like.objects.get_or_create(post=post, user=user)  # Use get_or_create
+        if not created:
             return Response({'detail': 'You have already liked this post.'}, status=400)
-        
-        # Create a like object
-        Like.objects.create(post=post, user=user)
         
         # Create a notification for the post's author
         Notification.objects.create(
@@ -50,7 +48,7 @@ class PostViewSet(viewsets.ModelViewSet):
     # Unlike a post (Custom action)
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)  # <-- Use get_object_or_404 to fetch the Post
+        post = get_object_or_404(Post, pk=pk)  # Correctly fetch the Post object
         user = request.user
         
         like = Like.objects.filter(post=post, user=user)
