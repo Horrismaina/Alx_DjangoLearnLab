@@ -1,17 +1,17 @@
 from rest_framework import viewsets, permissions, generics
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404  # <-- Import get_object_or_404
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from accounts.models import CustomUser
-from rest_framework.decorators import action
-from notifications.models import Notification 
-from notifications.serializers import NotificationSerializer  # <-- Import the serializer
+from notifications.models import Notification  # <-- Import the Notification model
+from notifications.serializers import NotificationSerializer  # <-- Import the NotificationSerializer
+from django.contrib.contenttypes.models import ContentType
 
-
-# Post view set for handling CRUD operations for posts
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -26,51 +26,47 @@ class PostViewSet(viewsets.ModelViewSet):
     # Like a post (Custom action)
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        post = self.get_object()
+        post = get_object_or_404(Post, pk=pk)  # <-- Use get_object_or_404 to fetch the Post
         user = request.user
+        
+        # Check if the user has already liked the post
         if Like.objects.filter(post=post, user=user).exists():
             return Response({'detail': 'You have already liked this post.'}, status=400)
+        
+        # Create a like object
         Like.objects.create(post=post, user=user)
+        
+        # Create a notification for the post's author
+        Notification.objects.create(
+            recipient=post.author,
+            actor=user,
+            verb='liked your post',
+            target_content_type=ContentType.objects.get_for_model(Post),
+            target_object_id=post.id
+        )
+        
         return Response({'detail': 'Post liked.'}, status=201)
 
     # Unlike a post (Custom action)
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
-        post = self.get_object()
+        post = get_object_or_404(Post, pk=pk)  # <-- Use get_object_or_404 to fetch the Post
         user = request.user
+        
         like = Like.objects.filter(post=post, user=user)
         if not like.exists():
             return Response({'detail': 'You have not liked this post.'}, status=400)
-        like.delete()
+        
+        like.delete()  # Delete the like
+        
+        # Optionally, you could create a notification for unliking as well
         return Response({'detail': 'Post unliked.'}, status=200)
 
-# Comment view set for handling CRUD operations for comments
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-# Feed view for displaying posts from followed users
-class FeedView(generics.ListAPIView):
-    serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = PageNumberPagination
-
-    def get_queryset(self):
-        user = self.request.user
-        following_users = user.following.all()  # Assuming `following` is a ManyToManyField in CustomUser
-        return Post.objects.filter(author__in=following_users).order_by('-created_at')
-
-# Notification view for fetching user's notifications (this view can be expanded later)
+# Notification view for fetching user's notifications
 class NotificationView(generics.ListAPIView):
-    # Assuming a Notification model exists that records notifications for users
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Notification.objects.filter(recipient=self.request.user).order_by('-timestamp')
-
