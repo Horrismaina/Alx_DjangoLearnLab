@@ -1,15 +1,14 @@
 from rest_framework import viewsets, permissions, generics
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404  # Importing get_object_or_404 correctly
+from django.shortcuts import get_object_or_404  # Importing the correct get_object_or_404
 from .models import Post, Comment, Like
 from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from accounts.models import CustomUser
-from notifications.models import Notification  # Ensure you import the Notification model
-from notifications.serializers import NotificationSerializer  # Ensure you import the NotificationSerializer
+from notifications.models import Notification
+from notifications.serializers import NotificationSerializer
 from django.contrib.contenttypes.models import ContentType
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -23,14 +22,14 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    # Like a post (Custom action)
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)  # Correctly fetch the Post object
+        post = get_object_or_404(Post, pk=pk)  # Correct way to get Post by pk
         user = request.user
         
-        # Check if the user has already liked the post
-        like, created = Like.objects.get_or_create(post=post, user=user)  # Use get_or_create
+        # Like or create a Like object
+        like, created = Like.objects.get_or_create(user=user, post=post)
+        
         if not created:
             return Response({'detail': 'You have already liked this post.'}, status=400)
         
@@ -45,26 +44,24 @@ class PostViewSet(viewsets.ModelViewSet):
         
         return Response({'detail': 'Post liked.'}, status=201)
 
-    # Unlike a post (Custom action)
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)  # Correctly fetch the Post object
+        post = get_object_or_404(Post, pk=pk)  # Correct way to get Post by pk
         user = request.user
         
-        like = Like.objects.filter(post=post, user=user)
+        # Get and delete the like object if exists
+        like = Like.objects.filter(user=user, post=post)
         if not like.exists():
             return Response({'detail': 'You have not liked this post.'}, status=400)
         
         like.delete()  # Delete the like
         
-        # Optionally, you could create a notification for unliking as well
         return Response({'detail': 'Post unliked.'}, status=200)
 
-# Notification view for fetching user's notifications
 class NotificationView(generics.ListAPIView):
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return Notification.objects.filter(recipient=self.request.user).order_by('-timestamp')
