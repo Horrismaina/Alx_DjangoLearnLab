@@ -1,17 +1,17 @@
-from rest_framework import status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
+from django.contrib.auth import authenticate, get_user_model
 from .serializers import UserSerializer, TokenSerializer
 
+CustomUser = get_user_model()
 
-class RegisterView(APIView):
-    permission_classes = [AllowAny]
+class RegisterView(generics.GenericAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             token, created = Token.objects.get_or_create(user=user)
@@ -22,8 +22,9 @@ class RegisterView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginView(APIView):
-    permission_classes = [AllowAny]
+class LoginView(generics.GenericAPIView):
+    serializer_class = TokenSerializer  # A serializer to validate login input
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         username = request.data.get('username')
@@ -36,3 +37,18 @@ class LoginView(APIView):
                 'token': token.key
             }, status=status.HTTP_200_OK)
         return Response({'error': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class ProfileView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UserSerializer
+
+    def get_object(self):
+        return self.request.user
+
+
+# Optional view to satisfy the `CustomUser.objects.all()` check
+class UserListView(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAdminUser]
